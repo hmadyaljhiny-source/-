@@ -1,0 +1,70 @@
+.about-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.about-header {
+    display: flex;
+    justify-content: flex-start;
+    padding: 15px;
+}
+
+.about-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    padding-top: 10px;
+}
+
+/* الأيقونة الكبيرة الزرقاء أو الخضراء المريحة */
+.info-icon-container {
+    margin-bottom: 30px;
+}
+
+.info-large-icon {
+    font-size: 110px;
+    color: #469c14; /* متناسق مع لون التطبيق الأخضر */
+}
+
+/* بطاقة معلومات التطبيق */
+.about-card {
+    background-color: #f9f9f9;
+    width: 90%;
+    max-width: 360px;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    margin-bottom: 40px;
+}
+
+.about-card h3 {
+    font-size: 20px;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.about-card p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    direction: rtl;
+}
+
+/* صندوق رقم الإصدار السفلي */
+.version-box {
+    background-color: #ffb703; /* ذهبي متناسق مع الأزرار */
+    color: #1a1a1a;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}

@@ -1,0 +1,78 @@
+/* تنسيقات صفحة الحساب المفردة المدمجة */
+.profile-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: flex-start;
+    padding: 15px;
+}
+
+.dark-help {
+    color: #1a1a1a;
+    font-weight: bold;
+}
+
+.yellow-help {
+    background-color: transparent !important;
+    border: 2px solid #fca311;
+    color: #fca311 !important;
+}
+
+.profile-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 15px; /* تقليل المسافة العلوية لرفع المحتوى */
+}
+
+/* تصميم الأيقونة الخضراء الكبيرة */
+.avatar-container {
+    margin-bottom: 25px; /* تقليل الهامش السفلي */
+}
+
+.avatar-icon {
+    font-size: 130px; /* تصغير حجم الأيقونة قليلاً لتوفير مساحة */
+    color: #7ec326;
+}
+
+/* حقل الاسم الأخضر المستطيل */
+.name-box {
+    background-color: #7ec326;
+    color: #1a1a1a;
+    width: 80%;
+    max-width: 320px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-align: right;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 35px; /* 👈 قمنا بتقليل هذا الهامش من 80px إلى 35px لرفع زر الخروج */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* قسم تسجيل الخروج المرفوع للأعلى */
+.logout-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    gap: 5px;
+    color: #1a1a1a;
+    font-weight: 500;
+    margin-bottom: 100px; /* مسافة أمان لمنع النزول خلف القائمة السفلية */
+}
+
+.logout-text-icon {
+    font-size: 32px;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+    display: inline-block;
+}
