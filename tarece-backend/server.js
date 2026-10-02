@@ -1,12 +1,16 @@
 const express = require('express');
-const pool = require('./db');
+const cors = require('cors'); 
 const app = express();
-app.use (express.json());
-const userRouter = require('./routes/User');
-app.use('/users', userRouter);
-const stationRouter = require('./routes/station');
-app.use('/stations', stationRouter);
+const stationRoutes = require('./routes/station');
+const userRoutes = require('./routes/User');
 
-app.listen(3000,()=>{
-    console.log('server is running on port 3000');
+app.use(cors()); // السماح بالاتصال من الفرونت إند بدون حظر
+app.use(express.json());
+
+// توجيه المسارات الأساسية
+app.use('/stations', stationRoutes);
+app.use('/users', userRoutes);
+
+app.listen(3000, () => {
+    console.log('✅ Server is running successfully on port 3000');
 });

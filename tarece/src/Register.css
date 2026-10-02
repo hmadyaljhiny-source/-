@@ -1,0 +1,72 @@
+.register-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.register-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px 25px;
+}
+
+.register-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 24px 110px 24px;
+}
+
+.register-title-box {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.register-title-box h2 {
+    font-size: 24px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.register-form {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.btn-register-submit {
+    width: 100%;
+    background-color: #ffb703;
+    color: #1a1a1a;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(255, 183, 3, 0.25);
+    transition: background-color 0.2s;
+}
+
+.btn-register-submit:hover {
+    background-color: #e0a102;
+}
+
+.back-to-login-box {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.link-back-login {
+    color: #469c14;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}

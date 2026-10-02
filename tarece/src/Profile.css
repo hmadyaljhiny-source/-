@@ -1,4 +1,4 @@
-.login-page {
+.login-page, .profile-page {
     width: 100%;
     min-height: 100vh;
     background-color: #ffffff;
@@ -6,9 +6,9 @@
     flex-direction: column;
 }
 
-.login-header {
+.login-header, .profile-header {
     display: flex;
-    justify-content: flex-end; /* وضع زر المساعدة في اليمين تماماً مثل الصورة */
+    justify-content: flex-end;
     padding: 15px 25px;
 }
 
@@ -23,17 +23,12 @@
     color: #ffb703 !important;
 }
 
-.login-content {
+.login-content, .profile-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 10px 24px 110px 24px;
-}
-
-/* 🏠 بناء وتجسيد شعار الطريق المضاء بالكامل عبر CSS */
-.app-logo-container {
-    margin-bottom: 35px;
 }
 
 .app-logo-container {
@@ -45,51 +40,10 @@
 }
 
 .app-logo-svg {
-    filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.3)); /* إعطاء اللوجو ككل بريق وظل واقعي */
-}
-
-.app-logo-svg {
-    overflow: visible !important; /* 👈 نمررها من هنا عبر الـ CSS وهي الطريقة الآمنة تماماً لمنع الشاشة البيضاء */
+    overflow: visible !important;
     filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.3));
 }
 
-
-/* إضاءة الخلفية الخضراء خلف الطريق */
-.app-logo-box::before {
-    content: '';
-    position: absolute;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, #62b322 0%, transparent 70%);
-    top: -20px;
-    right: -20px;
-    opacity: 0.8;
-}
-
-/* محاكاة الطريق المتعرج السريع */
-.road-strip {
-    position: absolute;
-    width: 35px;
-    height: 200px;
-    background-color: #222222;
-    border-left: 4px solid #444444;
-    border-right: 4px solid #444444;
-    top: -25px;
-    left: 40px;
-    transform: rotate(25deg);
-    clip-path: polygon(20% 0%, 80% 0%, 100% 30%, 30% 55%, 90% 75%, 40% 100%, 0% 100%);
-}
-
-.dashed-line {
-    width: 2px;
-    height: 100%;
-    border-left: 2px dashed #ffb703;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* الأشكال وعناصر الاستمارة وحقول الإدخال */
 .login-form {
     width: 100%;
     max-width: 360px;
@@ -117,21 +71,13 @@
     border: 1px solid #cccccc;
     border-radius: 8px;
     font-size: 14px;
-    color: #333333;
     outline: none;
-    background-color: #ffffff;
-    transition: border-color 0.2s;
 }
 
 .input-field-group input:focus {
     border-color: #62b322;
 }
 
-.input-field-group input::placeholder {
-    color: #b3b3b3;
-}
-
-/* زر تسجيل الدخول الأخضر الأساسي */
 .btn-login-green {
     width: 100%;
     background-color: #7ec326;
@@ -142,22 +88,13 @@
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    margin-top: 8px;
-    box-shadow: 0 4px 12px rgba(126, 195, 38, 0.25);
-    transition: background-color 0.2s;
 }
 
-.btn-login-green:hover {
-    background-color: #69a71e;
-}
-
-/* خيارات الفوتر السفلي */
 .login-options-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 14px;
-    width: 100%;
 }
 
 .link-forgot-pass {
@@ -167,7 +104,6 @@
     font-weight: 700;
 }
 
-/* زر ريجستر الأصفر */
 .btn-register-yellow {
     background-color: #ffb703;
     color: #1a1a1a;
@@ -177,10 +113,37 @@
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(255, 183, 3, 0.2);
-    transition: background-color 0.2s;
 }
 
-.btn-register-yellow:hover {
-    background-color: #e0a102;
+.avatar-container {
+    margin-bottom: 25px;
+}
+
+.avatar-icon {
+    font-size: 130px;
+    color: #7ec326;
+}
+
+.name-box {
+    background-color: #7ec326;
+    color: #1a1a1a;
+    width: 80%;
+    max-width: 320px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 35px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.logout-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    gap: 5px;
+    color: #1a1a1a;
+    font-weight: 500;
 }
