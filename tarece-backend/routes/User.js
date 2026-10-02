@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// 1️⃣ مسار تسجيل الدخول والتحقق الحقيقي من الحساب
+// 1. مسار تسجيل الدخول والتحقق الحقيقي من الحساب
 router.post('/login', async (req, res) => {
     try {
         const { number, password } = req.body; 
 
-        // استعلام القراءة الحية متطابق مع اسم الحقل namber في جدولك
+        // استعلام متوافق مع اسم الحقل namber في جدولك
         const result = await pool.query(
             'SELECT * FROM users WHERE namber = \$1',
             [number]
@@ -17,7 +17,6 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'المستخدم غير موجود في النظام' });
         }
 
-        // قراءة الصف الأول المستخرج من الداتا بيز بدقة
         const user = result.rows[0]; 
 
         // التحقق من تطابق الباسورد
@@ -38,21 +37,19 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// 2️⃣ إنشاء حساب جديد (التسجيل من الفرونت إند)
+// 2. إنشاء حساب جديد (التسجيل من الفرونت إند كـ مستخدم عادي)
 router.post('/', async (req, res) => {
     try {
         const { number, role, password } = req.body;
 
         console.log("=== طلب تسجيل جديد مستلم ===");
         console.log("الرقم المرسل للتخزين في namber:", number);
-        console.log("الرتبة المحددة للحفظ:", role);
 
-        // 🌟 إدخال البيانات متوافق تماماً مع اسم العمود namber في قاعدة بياناتك
         const result = await pool.query(
             'INSERT INTO users (namber, role, password) VALUES (\$1, \$2, \$3) RETURNING *',
             [
                 number, 
-                role || 'user', // إذا لم ترسل الواجهة رتبة، يتم حفظه كـ user تلقائياً
+                role || 'user', 
                 password
             ]
         );
@@ -60,13 +57,12 @@ router.post('/', async (req, res) => {
         console.log("🚀 تم الحفظ في قاعدة البيانات بنجاح!");
         res.json(result.rows);
     } catch (error) {
-        // 🌟 طباعة الخطأ الحقيقي الصادر من PostgreSQL في تيرمينال السيرفر فوراً
         console.error("❌ خطأ صادر من قاعدة البيانات (PostgreSQL):", error.message);
         res.status(400).json({ error: `فشل في قاعدة البيانات: ${error.message}` });
     }
 });
 
-// 3️⃣ جلب قائمة كافة المستخدمين
+// 3. جلب قائمة كافة المستخدمين
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM users');
@@ -76,7 +72,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 4️⃣ تعديل بيانات حساب
+// 4. تعديل بيانات حساب
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -91,7 +87,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// 5️⃣ حذف الحساب
+// 5. حذف الحساب
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;

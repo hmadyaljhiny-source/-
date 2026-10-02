@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Profile.css';
 import Register from './Register';
@@ -7,15 +7,13 @@ import RoleBadge from './components/RoleBadge';
 
 const API_URL = 'http://localhost:3000';
 
-// 🌟 تم تصحيح السطر الأول هنا لكي يستقبل كافة الـ Props الممررة من App.jsx بنجاح لمنع الشاشة البيضاء
-export default function Profile({ user, onLoginSuccess, onLogout, moderators, onAddModerator, onDeleteModerator }) {
+export default function Profile({ user, onLoginSuccess, onLogout, onRefreshHome }) {
   const [authMode, setAuthMode] = useState(user ? 'profile-view' : 'login'); 
   const [userNumber, setUserNumber] = useState(''); 
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); 
   const [loading, setLoading] = useState(false);
 
-  // دالة تسجيل الدخول والتحقق الحقيقي عبر السيرفر
   const handleSignIn = async (e) => {
     e.preventDefault();
     if (!userNumber || !password) {
@@ -32,7 +30,6 @@ export default function Profile({ user, onLoginSuccess, onLogout, moderators, on
         password: password
       });
 
-      // رفع البيانات للـ App.jsx لكي يعتمد الصلاحيات في كل الموقع
       onLoginSuccess(response.data); 
       setAuthMode('profile-view'); 
       
@@ -46,42 +43,14 @@ export default function Profile({ user, onLoginSuccess, onLogout, moderators, on
 
   if (authMode === 'register') return <Register onBackToLogin={() => setAuthMode('login')} />;
 
-  // 1️⃣ [واجهة الأدمن 👑]: يوجه للوحة التحكم الكبيرة الفاخرة
   if (authMode === 'profile-view' && user?.role === 'admin') {
-    return (
-      <AdminDashboard 
-        user={user} 
-        moderators={moderators} 
-        onAddModerator={onAddModerator} 
-        onDeleteModerator={onDeleteModerator} 
-      />
-    );
+    return <AdminDashboard user={user} />;
   }
 
-  // 2️⃣ [واجهة المشرف 🛠️]: يوجه لصفحة المشرف المخصصة له
   if (authMode === 'profile-view' && user?.role === 'moderator') {
-    return (
-      <div className="profile-page">
-        <header className="profile-header"><div className="help-section dark-help"><div className="help-icon yellow-help">?</div><span>المساعدة</span></div></header>
-        <main className="profile-content">
-          <div className="avatar-container"><i className="fa-solid fa-user-shield avatar-icon" style={{ color: '#469c14' }}></i></div>
-          <RoleBadge role={user.role} />
-          <div className="name-box" style={{ backgroundColor: '#469c14', color: '#fff' }}>
-            <span>مرحباً بالمشرف: {user.number}</span>
-          </div>
-          <div className="moderator-options" style={{ width: '100%', maxWidth: '340px', textAlign: 'center', marginBottom: '20px' }}>
-            <button className="btn" style={{ width: '100%', background: '#469c14', color: '#fff', padding: '12px', marginBottom: '10px' }}>📊 تقارير حالة الازدحام</button>
-            <button className="btn" style={{ width: '100%', background: '#1a1a1a', color: '#fff', padding: '12px' }}>📍 إدارة المحطات الموكلة إلي</button>
-          </div>
-          <div className="logout-section" onClick={() => { onLogout(); setAuthMode('login'); }}>
-            <i className="fa-solid fa-sign-out-alt logout-icon" style={{ fontSize: '30px', cursor: 'pointer' }}></i><span>تسجيل الخروج</span>
-          </div>
-        </main>
-      </div>
-    );
+    return <ModeratorView user={user} onLogout={onLogout} setAuthMode={setAuthMode} onRefreshHome={onRefreshHome} />;
   }
 
-  // 3️⃣ [واجهة المستخدم العادي 👤]: يوجه لصفحة البروفايل البسيطة
   if (authMode === 'profile-view' && user?.role === 'user') {
     return (
       <div className="profile-page">
@@ -98,7 +67,6 @@ export default function Profile({ user, onLoginSuccess, onLogout, moderators, on
     );
   }
 
-  // شاشة تسجيل الدخول الافتراضية إذا لم يكن هناك مستخدم مسجل
   return (
     <div className="login-page">
       <header className="login-header"><div className="help-section dark-help"><div className="help-icon yellow-help">?</div><span>المساعدة</span></div></header>
@@ -121,6 +89,66 @@ export default function Profile({ user, onLoginSuccess, onLogout, moderators, on
           <button type="submit" className="btn-login-green" disabled={loading}>Sign In</button>
           <div className="login-options-footer"><a href="#forgot" className="link-forgot-pass">Forgot password?</a><button type="button" className="btn-register-yellow" onClick={() => setAuthMode('register')}>Register</button></div>
         </form>
+      </main>
+    </div>
+  );
+}
+
+function ModeratorView({ user, onLogout, setAuthMode, onRefreshHome }) {
+  const [myStations, setMyStations] = useState([]);
+  const [msg, setMsg] = useState('');
+
+  const fetchMyStations = () => {
+    axios.get(`${API_URL}/stations`)
+      .then(res => {
+        const filtered = res.data.filter(s => s.moderators && s.moderators.includes(user.number));
+        setMyStations(filtered);
+      })
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchMyStations();
+  }, []);
+
+  const handleUpdateLiveStatus = async (stationId, newStatus) => {
+    try {
+      await axios.post(`${API_URL}/stations/update-status/${stationId}`, { status: newStatus });
+      setMsg(`تم التغيير إلى [${newStatus}] بنجاح في قاعدة البيانات!`);
+      fetchMyStations();
+      onRefreshHome(); 
+      setTimeout(() => setMsg(''), 3000);
+    } catch (error) {
+      alert("فشل تحديث حالة الازدحام بسبب تعارض نوع البيانات");
+    }
+  };
+
+  return (
+    <div className="profile-page">
+      <header className="profile-header"><div className="help-section dark-help"><div className="help-icon yellow-help">?</div><span>المساعدة</span></div></header>
+      <main className="profile-content" style={{ direction: 'rtl' }}>
+        <div className="avatar-container"><i className="fa-solid fa-user-shield avatar-icon" style={{ color: '#469c14' }}></i></div>
+        <RoleBadge role={user.role} />
+        <div className="name-box" style={{ backgroundColor: '#469c14', color: '#fff' }}><span>المشرف المسؤول: {user.number}</span></div>
+        {msg && <p style={{ color: '#469c14', fontWeight: 'bold', fontSize: '13px', marginBottom: '10px', textAlign: 'center' }}>{msg}</p>}
+        <div style={{ width: '100%', maxWidth: '360px', padding: '15px', border: '1px solid #ccc', borderRadius: '12px', background: '#f9f9f9', marginBottom: '25px' }}>
+          <h4 style={{ marginBottom: '15px', textAlign: 'center' }}>📊 تحديث حالة ازدحام محطاتك</h4>
+          {myStations.length === 0 ? <p style={{ textAlign: 'center', color: '#888' }}>لا توجد محطات موكلة إليك حالياً.</p> : 
+            myStations.map(st => (
+              <div key={st.id} style={{ marginBottom: '15px', borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>
+                {/* ترجمة حالة الـ boolean وعرضها للمشرف بدقة */}
+                <p style={{ fontWeight: 'bold', marginBottom: '8px', textAlign: 'right' }}>🏢 محطة: {st.name} (الحالية: {st.state === true ? '🟢 متاحة' : '🔴 مزدحمة / غير متاحة'})</p>
+                
+                {/* 🌟 الزرين المتوافقين مع حقل الـ boolean لحفظ البيانات بنجاح 🌟 */}
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                  <button onClick={() => handleUpdateLiveStatus(st.id, 'مزدحمة')} style={{ background: '#d90429', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>🔴 مزدحمة</button>
+                  <button onClick={() => handleUpdateLiveStatus(st.id, 'متاحة')} style={{ background: '#469c14', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>🟢 متاحة</button>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+        <div className="logout-section" onClick={() => { onLogout(); setAuthMode('login'); }}><i className="fa-solid fa-sign-out-alt logout-icon" style={{ fontSize: '30px', cursor: 'pointer' }}></i><span>تسجيل الخروج</span></div>
       </main>
     </div>
   );

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// 1. جلب كافة المحطات مع أرقام هواتف المشرفين (JOIN) بدون حقل location
+// 1. جلب كافة المحطات مع أرقام هواتف المشرفين (JOIN)
 router.get('/', async (req, res) => {
     try {
         const queryText = `
@@ -22,41 +22,29 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 2. إضافة محطة جديدة وترقية المستخدم المختار إلى مشرف تلقائياً
+// 2. إضافة محطة جديدة وترقية مستخدم عادي تلقائياً إلى مشرف
 router.post('/', async (req, res) => {
     const client = await pool.connect();
     try {
-        const { name, supervisor_id } = req.body; // نكتفي بـ name و supervisor_id فقط
+        const { name, supervisor_id } = req.body;
 
         if (!supervisor_id) {
-            return res.status(400).json({ error: "يجب اختيار مستخدم لترقيته وتعيينه كمشرف للمحطة!" });
-        }
-
-        // فحص صلاحية المستخدم المختار
-        const userCheck = await pool.query('SELECT * FROM users WHERE id = \$1', [supervisor_id]);
-        if (userCheck.rows.length === 0) {
-            return res.status(400).json({ error: "المستخدم المختار غير موجود!" });
-        }
-        if (userCheck.rows[0].role === 'admin') {
-            return res.status(400).json({ error: "لا يمكن ترقية أو تعيين حساب الأدمن كمشرف محطة!" });
+            return res.status(400).json({ error: "يجب اختيار مستخدم لترقيته كمشرف!" });
         }
 
         await client.query('BEGIN');
 
-        // أ. إدخال المحطة في جدول stations (الحقول المتاحة: name فقط، وحالة state تأخذ القيمة الافتراضية true)
+        // إدخال المحطة بالحالة الافتراضية true (أي متاحة) لتتوافق مع حقل boolean
         const stationResult = await client.query(
-            'INSERT INTO stations (name) VALUES (\$1) RETURNING *',
+            "INSERT INTO stations (name, state) VALUES (\$1, true) RETURNING *",
             [name]
         );
         const newStation = stationResult.rows[0];
 
-        // ب. ترقية رتبة المستخدم المختار إلى مشرف (moderator) في جدول users
-        await client.query(
-            "UPDATE users SET role = 'moderator' WHERE id = \$1",
-            [supervisor_id]
-        );
+        // ترقية رتبة المستخدم إلى مشرف (moderator)
+        await client.query("UPDATE users SET role = 'moderator' WHERE id = \$1", [supervisor_id]);
 
-        // ج. ربط المحطة بالمشرف المترقي حديثاً في جدول العلاقة user_station
+        // ربط المحطة بالمشرف في جدول العلاقة
         await client.query(
             'INSERT INTO user_station (user_id, station_id) VALUES (\$1, \$2)',
             [supervisor_id, newStation.id]
@@ -73,7 +61,34 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 3. تعديل المحطة (تغيير الاسم أو تغيير وتحديث المشرف المسؤول)
+// 🌟 3. المسار الذكي لتحديث حالة الازدحام وتحويل النصوص إلى Boolean لتتوافق مع جدولك 🌟
+router.post('/update-status/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // نلتقط النص: 'مزدحمة' أو 'متاحة' أو 'مغلقة'
+
+        // تحويل النص الذكي القادم من الفرونت إند إلى قيمة boolean لتقبلها قاعدة البيانات فوراً
+        let booleanState;
+        if (status === 'متاحة') {
+            booleanState = true;   // 🟢 true تعني متاحة
+        } else {
+            booleanState = false;  // 🔴 false تعني مزدحمة أو مغلقة
+        }
+
+        // الاستعلام يتوافق الآن 100% مع نوع الـ boolean في جدولك ويحفظ بنجاح
+        const result = await pool.query(
+            'UPDATE stations SET state = \$1 WHERE id = \$2 RETURNING *',
+            [booleanState, id]
+        );
+
+        res.json({ message: "تم تحديث حالة الازدحام بنجاح", station: result.rows[0] });
+    } catch (error) {
+        console.error("❌ خطأ أثناء التحديث بالسيرفر:", error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 4. تعديل بيانات المحطة العام للأدمن
 router.put('/:id', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -81,42 +96,25 @@ router.put('/:id', async (req, res) => {
         const { name, supervisor_id } = req.body;
 
         await client.query('BEGIN');
-
-        // أ. تحديث اسم المحطة
         if (name) {
             await client.query('UPDATE stations SET name = \$1 WHERE id = \$2', [name, id]);
         }
-
-        // ب. تغيير وتحديث المشرف إذا تم إرسال معرّف جديد
         if (supervisor_id) {
-            // فحص صلاحية المشرف الجديد
-            const userCheck = await client.query('SELECT * FROM users WHERE id = \$1', [supervisor_id]);
-            if (userCheck.rows.length === 0 || userCheck.rows[0].role === 'admin') {
-                return res.status(400).json({ error: "المشرف المختار غير صالح أو رتبته أدمن!" });
-            }
-
-            // مسح الارتباطات القديمة لهذه المحطة في جدول العلاقة
             await client.query('DELETE FROM user_station WHERE station_id = \$1', [id]);
-
-            // ترقية المستخدم الجديد إلى مشرف
             await client.query("UPDATE users SET role = 'moderator' WHERE id = \$1", [supervisor_id]);
-
-            // إنشاء الارتباط الجديد
             await client.query('INSERT INTO user_station (user_id, station_id) VALUES (\$1, \$2)', [supervisor_id, id]);
         }
-
         await client.query('COMMIT');
         res.json({ message: "تم تحديث بيانات المحطة والمشرف بنجاح" });
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error(error);
         res.status(500).json({ error: error.message });
     } finally {
         client.release();
     }
 });
 
-// 4. حذف محطة
+// 5. حذف محطة
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
